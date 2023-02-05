@@ -9,4 +9,4 @@ const connection: Connection = mysql.createConnection({
 	database: "medapp_be",
 });
 
-export default connection;
+module.exports = connection;

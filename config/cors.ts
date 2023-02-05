@@ -7,4 +7,4 @@ const corsOptions: CorsOptions = {
 	optionsSuccessStatus: 200,
 };
 
-export default () => cors(corsOptions);
+module.exports = () => cors(corsOptions);

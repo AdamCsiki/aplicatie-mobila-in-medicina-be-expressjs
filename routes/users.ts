@@ -1,10 +1,10 @@
-import { Response, Request, Router, NextFunction } from "express";
-import User from "../models/user";
-import Roles from "../models/roles";
-import cookieJwtAuth from "../middleware/cookieJwtAuth";
-import connection from "../db/mysql";
+import { Response, Request, Router } from "express";
+import { UserModel } from "../models/userModel";
+import { FieldInfo, MysqlError } from "mysql";
 
-connection.connect();
+const connection = require("../db/mysql");
+
+const cookieJwtAuth = require("../middleware/jwtAuth");
 
 const express = require("express");
 const router: Router = express.Router();
@@ -12,48 +12,51 @@ const router: Router = express.Router();
 router
 	.route("/")
 	.get((req: Request, res: Response) => {
-		connection.query("SELECT * FROM app_user;", (err, rows, fields) => {
+		connection.query("SELECT * FROM users;", (err: MysqlError, rows: any) => {
 			if (err) {
-				console.log("Error: ", err);
+				res.json({
+					success: false,
+					error: err
+				})
+				return;
 			}
 			res.json(rows);
 		});
 
 		res.status(200);
-	})
-	.post((req: Request, res: Response) => {
-		const user: User = req.body;
-		if (!user) {
-			console.log("User missing, ", user);
-		}
-
-		connection.query("");
 	});
 
-router.get("/new", cookieJwtAuth, (req: Request, res: Response) => {
-	res.send("User new user");
-});
-
 router
-	.route("/:id")
+	.route("/user")
 	.get(cookieJwtAuth, (req: Request, res: Response) => {
+		const query = "SELECT * FROM users WHERE id = ?";
+
 		connection.query(
-			`SELECT * FROM app_user WHERE id=${req.params.id}`,
-			(err, rows, fields) => {
+			query,
+			[req.query.id],
+			(err: MysqlError, rows: any) => {
 				if (err) {
-					throw err;
+					res.status(401);
+					res.json({
+						success: false,
+						error: err
+					})
 				}
 
 				if (rows.length == 0) {
-					console.log(`No user with ${req.params.id} exists.`);
 					res.status(404);
+					res.json({
+						success: false,
+						msg: "User does not exist."
+					})
 				}
 
-				res.json(rows);
+				res.status(200);
+				res.json({
+					user: rows[0]
+				})
 			}
 		);
-
-		res.status(200);
 	})
 	.put(cookieJwtAuth, (req: Request, res: Response) => {
 		res.send(`Update user with ID: ${req.params.id}`);
@@ -62,23 +65,5 @@ router
 		res.send(`Delete user with ID: ${req.params.id}`);
 	});
 
-const users: User[] = [
-	{
-		email: " ",
-		password: " ",
-		username: " ",
-		firstName: " ",
-		lastName: " ",
-		roles: [{ name: Roles.ROLE_USER, permissions: [] }],
-	},
-];
-
-router.param(
-	"id",
-	(req: Request, res: Response, next: NextFunction, id: any) => {
-		console.log(users[id]);
-		next();
-	}
-);
 
 module.exports = router;

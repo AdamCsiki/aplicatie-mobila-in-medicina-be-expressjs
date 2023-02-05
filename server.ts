@@ -1,11 +1,13 @@
 import { BodyParser } from "body-parser";
 import { NextFunction, Request, Response } from "express";
-import cors from "./config/cors";
-import logger from "./middleware/logger";
-import process from "process";
-import cookieJwtAuth from "./middleware/cookieJwtAuth";
+
+const cors = require("./config/cors");
+const logger = require("./middleware/logger");
+const process = require("process");
+const jwtAuth = require("./middleware/jwtAuth");
 
 process.env.MY_SECRET = "hello";
+process.env.MY_SECRET_REFRESH = "refreshinghello";
 
 // ! BEFORE READING ANY COMMENTS MAKE SURE TO INSTALL THE Improved Comments PLUGIN
 
@@ -16,12 +18,15 @@ const bodyParser: BodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const app = express();
 
+const connection = require("./db/mysql");
+connection.connect();
+
 // !
 // ! Express setup begins here
 // !
 
 // * Global headers set up here
-// ? The global headers are set up in this file because i could not find a way to put it in another file without being similar
+// ? The global headers are set up in this file because I could not find a way to put it in another file without being similar
 app.use((req: Request, res: Response, next: NextFunction) => {
 	res.header({
 		"Content-Type": "application/json",
@@ -43,7 +48,7 @@ app.use(logger);
 app.use(cors());
 app.use(cookieParser());
 
-// ! Routes begins here
+// ! Routes begin here
 // ? User route handles all the requests for the user table
 // ? Product route handles all the requests for the products table
 // ? Auth route handles the login and register features of the application
@@ -52,10 +57,11 @@ const authRouter = require("./routes/auth");
 
 // ! Applying the routes and the route specific middleware
 // ? The users route uses cookieJwtAuth to check if a token is present on the request
-app.use("/users", cookieJwtAuth);
+app.use("/users", jwtAuth);
 app.use("/users", userRouter);
 app.use("/auth", authRouter);
 app.use("/noauth", express.static("public/noauth.html"));
+
 
 // ! Express Server starts here
 // ? It clears the console on start to stop text spam
