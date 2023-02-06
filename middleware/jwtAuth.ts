@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import {Request, Response, NextFunction} from "express";
 
 const jwt = require("jsonwebtoken");
 
@@ -32,9 +32,10 @@ function jwtAuth(req: Request, res: Response, next: NextFunction) {
 	const token = parts[1];
 
 	try {
-		const user = jwt.verify(token, process.env.MY_SECRET);
+		// const user =
+		jwt.verify(token, process.env.MY_SECRET);
 
-		req.body = user;
+		// req.body = user;
 
 		next();
 	} catch (err) {

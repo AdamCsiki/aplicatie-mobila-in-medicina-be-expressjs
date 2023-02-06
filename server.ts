@@ -53,12 +53,17 @@ app.use(cookieParser());
 // ? Product route handles all the requests for the products table
 // ? Auth route handles the login and register features of the application
 const userRouter = require("./routes/users");
+const foodRouter = require("./routes/foods");
 const authRouter = require("./routes/auth");
 
 // ! Applying the routes and the route specific middleware
-// ? The users route uses cookieJwtAuth to check if a token is present on the request
+// ? Almost all routes use cookieJwtAuth to check if a token is present on the request
 app.use("/users", jwtAuth);
 app.use("/users", userRouter);
+//
+app.use("/foods", jwtAuth);
+app.use("/foods", foodRouter)
+// ? Authorization routes don't use JWT tokens
 app.use("/auth", authRouter);
 app.use("/noauth", express.static("public/noauth.html"));
 
