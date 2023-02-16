@@ -28,13 +28,13 @@ connection.connect();
 // * Global headers set up here
 // ? The global headers are set up in this file because I could not find a way to put it in another file without being similar
 app.use((req: Request, res: Response, next: NextFunction) => {
-	res.header({
-		"Content-Type": "application/json",
-		Connection: "keep-alive",
-		Accept: "*/*",
-	});
-	// ! if error about header set after it was sent, it means that two responses were sent
-	next();
+  res.header({
+    "Content-Type": "application/json",
+    Connection: "keep-alive",
+    Accept: "*/*",
+  });
+  // ! if error about header set after it was sent, it means that two responses were sent
+  next();
 });
 
 // ? Body parser is used in order for the body of the request to be used, otherwise it is always undefined.
@@ -62,17 +62,16 @@ app.use("/users", jwtAuth);
 app.use("/users", userRouter);
 //
 app.use("/foods", jwtAuth);
-app.use("/foods", foodRouter)
+app.use("/foods", foodRouter);
 // ? Authorization routes don't use JWT tokens
 app.use("/auth", authRouter);
 app.use("/noauth", express.static("public/noauth.html"));
-
 
 // ! Express Server starts here
 // ? It clears the console on start to stop text spam
 // ? Shows the port and gives a link for ease of access
 app.listen(PORT, () => {
-	console.clear();
-	console.log(`CORS-enabled web server listening on port ${PORT}`);
-	console.log(`Link is here: http://localhost:${PORT}`);
+  console.clear();
+  console.log(`CORS-enabled web server listening on port ${PORT}`);
+  console.log(`Link is here: http://localhost:${PORT}`);
 });
