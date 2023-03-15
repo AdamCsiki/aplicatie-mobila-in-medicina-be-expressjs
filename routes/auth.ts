@@ -32,7 +32,7 @@ function createToken(email: String) {
 }
 
 // ! POST route for Login
-router.post('/login', (req: Request, res: Response) => {
+router.post('/signin', (req: Request, res: Response) => {
     if (!(req.body.email && req.body.password)) {
         res.status(401)
         res.json({
@@ -46,7 +46,7 @@ router.post('/login', (req: Request, res: Response) => {
 
     // ? Query for checking if the user exists
     // ? Using placeholder ? to prevent sql injection
-    const query = 'SELECT pass FROM users WHERE email = ? LIMIT 1;'
+    const query = 'SELECT id, pass FROM users WHERE email = ? LIMIT 1;'
 
     connection.query(
         query,
@@ -66,8 +66,6 @@ router.post('/login', (req: Request, res: Response) => {
                 loginUser.password,
                 rows[0].pass,
                 (err: any, result: boolean) => {
-                    console.log(rows[0].pass)
-                    console.log(loginUser.password)
                     if (err) {
                         console.log('Encoding error: ', err)
                     }
@@ -92,6 +90,7 @@ router.post('/login', (req: Request, res: Response) => {
                         success: true,
                         msg: 'User logged in successfully.',
                         token: token,
+                        id: rows[0].id,
                     })
                     return
                 }
@@ -166,6 +165,7 @@ router.get('/refresh', (req: Request, res: Response) => {
     const refreshToken = req.cookies.refresh
 
     if (refreshToken) {
+        console.log(`Refresh token: Check\n${refreshToken}`)
         const jwtUser = jwt.verify(refreshToken, process.env.MY_SECRET_REFRESH)
 
         const token = jwt.sign(
@@ -173,6 +173,7 @@ router.get('/refresh', (req: Request, res: Response) => {
             process.env.MY_SECRET,
             {
                 expiresIn: '90d', // ! CHANGE IT BACK TO 5 MINUTES AFTER DEVELOPMENT
+                // ? 1 minute can do to
             }
         )
 
@@ -182,6 +183,7 @@ router.get('/refresh', (req: Request, res: Response) => {
             { expiresIn: '90d' }
         )
 
+        res.removeHeader('set-cookie')
         res.clearCookie('refresh', { httpOnly: true })
 
         res.cookie('refresh', newRefreshToken, { httpOnly: true })

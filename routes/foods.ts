@@ -29,9 +29,7 @@ router.route('/').get((req: Request, res: Response) => {
         }
 
         res.status(200)
-        res.json({
-            rows,
-        })
+        res.json(rows)
         return
     })
 })
@@ -47,6 +45,7 @@ router.route('/find').get((req: Request, res: Response) => {
             success: false,
             msg: 'No search query has been given.',
         })
+        return
     }
 
     connection.query(
@@ -67,9 +66,7 @@ router.route('/find').get((req: Request, res: Response) => {
             }
 
             res.status(200)
-            res.json({
-                rows,
-            })
+            res.json(rows)
         }
     )
 })
@@ -103,65 +100,17 @@ router
                     return
                 }
 
+                const food: FoodModel = rows[0]
+
                 res.status(200)
-                res.json({
-                    food: rows[0],
-                })
-            }
-        )
-    })
-
-    .post((req: Request, res: Response) => {
-        if (!req.body) {
-            handleNotFound(res, 'Food missing.')
-            return
-        }
-
-        const getQuery = 'SELECT * FROM foods WHERE name = ?'
-        const insertQuery = 'INSERT INTO foods (name, user_id) VALUES (?, ?)'
-
-        const newFood: FoodModel = req.body
-
-        if (!newFood.details) {
-            newFood.details = {} as FoodDetailsModel
-        }
-
-        // ! Checking if food with the same name already exists.
-        connection.query(
-            getQuery,
-            [newFood.name],
-            (err: MysqlError, rows: any[]) => {
-                if (rows.length > 0) {
-                    handleCustomError(res, 409, 'Food already exists.')
-                    return
-                }
-
-                // ! Adding the food
-                connection.query(
-                    insertQuery,
-                    [newFood.name, newFood.user_id],
-                    (err: MysqlError) => {
-                        if (err) {
-                            handleMySqlError(res, err)
-                            return
-                        }
-
-                        res.status(200)
-                        res.json({
-                            success: true,
-                            msg: 'Food added successfully.',
-                        })
-                    }
-                )
+                res.json(food)
             }
         )
     })
     .put((req: Request, res: Response) => {
         const getQuery = 'SELECT * FROM foods WHERE id = ?;'
-        const postQuery =
-            'INSERT INTO foods (name, description, user_id) VALUES (?, ?, ?)'
-        const putQuery =
-            'UPDATE foods SET name = ?, description = ? WHERE id = ?;'
+        const postQuery = 'INSERT INTO foods (name, user_id) VALUES (?, ?)'
+        const putQuery = 'UPDATE foods SET name = ? WHERE id = ?;'
 
         // ! Checking if the id is given
         if (!req.query.id) {
@@ -189,11 +138,7 @@ router
                 if (rows.length == 0) {
                     connection.query(
                         postQuery,
-                        [
-                            updatedFood.name,
-                            updatedFood.description,
-                            updatedFood.user_id,
-                        ],
+                        [updatedFood.name, updatedFood.user_id],
                         (err: MysqlError) => {
                             if (err) {
                                 handleMySqlError(res, err)
@@ -217,7 +162,7 @@ router
 
                 connection.query(
                     putQuery,
-                    [updatedFood.name, updatedFood.description, req.query.id],
+                    [updatedFood.name, req.query.id],
                     (err: MysqlError) => {
                         if (err) {
                             handleMySqlError(res, err)
@@ -351,7 +296,7 @@ router.route('/subs').get((req: Request, res: Response) => {
                     }
 
                     res.status(200)
-                    res.json({ success: true, sub_foods: rows })
+                    res.json(rows)
                 }
             )
         }

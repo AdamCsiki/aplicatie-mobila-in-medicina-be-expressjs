@@ -1,6 +1,6 @@
-import {Request, Response, NextFunction} from "express";
+import { Request, Response, NextFunction } from 'express'
 
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken')
 
 // ! The middleware used for checking the jwt tokens sent in requests
 // ? It takes the Authorization Token which looks like: "Bearer XXXXXXXXXXX"
@@ -10,38 +10,37 @@ const jwt = require("jsonwebtoken");
 // ? If the token is bad, it redirects to the refresh token path, since the request had a good, but expired token
 // !!!! After getting a new token, the request will need to be sent again
 function jwtAuth(req: Request, res: Response, next: NextFunction) {
-	const bearerHeader = req.headers.authorization;
+    const bearerHeader = req.headers.authorization
 
-	if (!bearerHeader) {
-		res.status(403);
-		return res.redirect("/noauth");
-	}
+    if (!bearerHeader) {
+        console.log('No bearer token.')
+        res.status(403).end()
+        return res
+    }
 
-	const parts = bearerHeader?.split(" ");
+    const parts = bearerHeader?.split(' ')
 
-	if (parts.length != 2) {
-		res.status(403);
-		return res.redirect("/noauth");
-	}
+    if (parts.length != 2) {
+        res.status(403).end()
+        return res
+    }
 
-	if (parts[0] != "Bearer") {
-		res.status(403);
-		return res.redirect("/noauth");
-	}
+    if (parts[0] != 'Bearer') {
+        res.status(403).end()
+        return res
+    }
 
-	const token = parts[1];
+    const token = parts[1]
 
-	try {
-		// const user =
-		jwt.verify(token, process.env.MY_SECRET);
+    try {
+        jwt.verify(token, process.env.MY_SECRET)
 
-		// req.body = user;
-
-		next();
-	} catch (err) {
-		res.status(401);
-		return res.redirect("/auth/refresh");
-	}
+        next()
+    } catch (err) {
+        console.log('Token invalid.')
+        res.status(498).end()
+        return res
+    }
 }
 
-module.exports = jwtAuth;
+module.exports = jwtAuth
