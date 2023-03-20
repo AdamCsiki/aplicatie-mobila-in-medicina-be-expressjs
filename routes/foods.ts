@@ -6,7 +6,6 @@ import {
     handleMySqlError,
     handleNotFound,
 } from '../misc/errorHandlers'
-import FoodDetailsModel from '../models/FoodDetailsModel'
 
 const connection = require('./../db/mysql')
 const express = require('express')
@@ -69,6 +68,25 @@ router.route('/find').get((req: Request, res: Response) => {
             res.json(rows)
         }
     )
+})
+
+router.route('/uid').get((req: Request, res: Response) => {
+    const query = 'SELECT * FROM foods WHERE user_id=?'
+
+    if (!req.query.id) {
+        handleNotFound(res, 'No id.')
+        return
+    }
+
+    connection.query(query, [req.query.id], (err: MysqlError, rows: any[]) => {
+        if (err) {
+            handleMySqlError(res, err)
+            return
+        }
+
+        res.status(200)
+        res.json(rows)
+    })
 })
 
 // ! Route designated for use on only one object

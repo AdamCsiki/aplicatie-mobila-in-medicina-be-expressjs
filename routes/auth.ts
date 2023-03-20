@@ -113,15 +113,17 @@ router.post('/signup', (req: Request, res: Response) => {
         (err: MysqlError, rows: any[]) => {
             if (rows.length != 0) {
                 res.status(401)
-                res.json({
-                    success: false,
-                    msg: 'User already exists.',
-                })
+                res.json('User already exists.')
                 return
             }
 
+            const currentDate = new Date()
+                .toISOString()
+                .slice(0, 19)
+                .replace('T', ' ')
+
             const query =
-                'INSERT INTO users (email, pass, first_name, last_name) VALUES (?, ?, ?, ?)'
+                'INSERT INTO users (email, pass, username, dateOfSignUp) VALUES (?, ?, ?, ?)'
 
             encoder.encryptPassword(
                 registerUser.password,
@@ -133,8 +135,8 @@ router.post('/signup', (req: Request, res: Response) => {
                         [
                             registerUser.email,
                             registerUser.password,
-                            registerUser.firstName,
-                            registerUser.lastName,
+                            registerUser.username,
+                            currentDate,
                         ],
                         (err: MysqlError) => {
                             if (err) {
@@ -147,10 +149,7 @@ router.post('/signup', (req: Request, res: Response) => {
                             }
 
                             res.status(200)
-                            res.json({
-                                success: true,
-                                msg: 'User has been created.',
-                            })
+                            res.json('User has been created.')
                         }
                     )
                 }

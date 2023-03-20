@@ -1,10 +1,10 @@
-import Role from "./role";
+import Role from './role'
 
 interface RegisterUser {
-	email: String;
-	password: String;
-	firstName: String;
-	lastName: String;
+    username: string
+    email: string
+    password: string
+    dateOfSignUp: Date
 }
 
-export default RegisterUser;
+export default RegisterUser
