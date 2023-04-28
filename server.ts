@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 import { BodyParser } from 'body-parser'
 import { NextFunction, Request, Response } from 'express'
 
@@ -10,12 +12,30 @@ const cors = require('./config/cors')
 const logger = require('./middleware/logger')
 const process = require('process')
 const jwtAuth = require('./middleware/jwtAuth')
+const fs = require('fs')
+const morgan = require('morgan')
 
 const PORT = 3000
-process.env.MY_SECRET = 'secret'
-process.env.MY_SECRET_REFRESH = 'refreshingsecret'
 
 const app = express()
+
+const date = new Date()
+
+var logFile = fs.createWriteStream(
+    './logs/log' +
+        '-' +
+        date.getDay() +
+        '-' +
+        date.getMonth() +
+        '-' +
+        date.getFullYear() +
+        '-' +
+        date.getTime() +
+        '.txt',
+    {
+        flags: 'a',
+    }
+)
 
 // ! BEFORE READING ANY COMMENTS MAKE SURE TO INSTALL THE Improved Comments PLUGIN
 
@@ -39,12 +59,13 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // ? Logger is used for logging when requests are made
 // ? Cors is used in order to set up Cross Origin requests
 // ? CookieParser is used for the JWToken requests
-// ? Public is exposed staticly for absolutely no reason, it's just one line, won't hurt right?
+// ? Public is exposed statically for absolutely no reason, it's just one line, won't hurt right?
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.use(logger)
 app.use(cors())
 app.use(cookieParser())
+app.use(morgan('combined', { stream: logFile }))
 
 // ! Routes begin here
 // ? User route handles all the requests for the user table
@@ -58,7 +79,9 @@ const imageRouter = require('./routes/images')
 
 // ! Applying the routes and the route specific middleware
 // ? Almost all routes use cookieJwtAuth to check if a token is present on the request
-// app.use('/users', jwtAuth)
+
+//
+app.use('/users', jwtAuth)
 app.use('/users', userRouter)
 //
 app.use('/foods', jwtAuth)

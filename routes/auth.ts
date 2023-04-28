@@ -1,7 +1,7 @@
 import { Response, Request, Router } from 'express'
 import LoginUser from '../models/LoginUser'
 import process from 'process'
-import { FieldInfo, MysqlError } from 'mysql'
+import { MysqlError } from 'mysql'
 import RegisterUser from '../models/RegisterUser'
 import {
     handleCustomError,
@@ -18,13 +18,13 @@ const router: Router = express.Router()
 const encoder = require('../misc/encription')
 
 function createToken(email: String) {
-    const token = jwt.sign({ email: email }, process.env.MY_SECRET, {
-        expiresIn: '90d', // ! CHANGE IT BACK TO 5 MINUTES AFTER DEVELOPMENT
+    const token = jwt.sign({ email: email }, process.env.SECRET_KEY, {
+        expiresIn: '5m', // ! CHANGE IT BACK TO 5 MINUTES AFTER DEVELOPMENT
     })
 
     const refreshToken = jwt.sign(
         { email: email },
-        process.env.MY_SECRET_REFRESH,
+        process.env.SUPER_SECRET_KEY,
         { expiresIn: '90d' }
     )
 
@@ -86,6 +86,7 @@ router.post('/signin', (req: Request, res: Response) => {
                     res.cookie('refresh', refreshToken, { httpOnly: true })
 
                     res.status(200)
+
                     res.json({
                         success: true,
                         msg: 'User logged in successfully.',
@@ -165,21 +166,23 @@ router.get('/refresh', (req: Request, res: Response) => {
 
     if (refreshToken) {
         console.log(`Refresh token: Check\n${refreshToken}`)
-        const jwtUser = jwt.verify(refreshToken, process.env.MY_SECRET_REFRESH)
+        const jwtUser = jwt.verify(
+            refreshToken,
+            `${process.env.SUPER_SECRET_KEY}`
+        )
 
         const token = jwt.sign(
             { email: jwtUser.email },
-            process.env.MY_SECRET,
+            `${process.env.SECRET_KEY}`,
             {
-                expiresIn: '90d', // ! CHANGE IT BACK TO 5 MINUTES AFTER DEVELOPMENT
-                // ? 1 minute can do to
+                expiresIn: '5m', // ! CHANGE IT BACK TO 5 MINUTES AFTER DEVELOPMENT
             }
         )
 
         const newRefreshToken = jwt.sign(
             { email: jwtUser.email },
-            process.env.MY_SECRET_REFRESH,
-            { expiresIn: '90d' }
+            `${process.env.SUPER_SECRET_KEY}`,
+            { expiresIn: '30d' }
         )
 
         res.removeHeader('set-cookie')
@@ -189,7 +192,7 @@ router.get('/refresh', (req: Request, res: Response) => {
 
         res.json({
             success: true,
-            msg: 'Refresh succesfull',
+            msg: 'Refresh successful',
             token: token,
         })
 
@@ -198,7 +201,7 @@ router.get('/refresh', (req: Request, res: Response) => {
 
     res.status(401).json({
         success: false,
-        msg: 'Refresh unsuccesfull',
+        msg: 'Refresh unsuccessful',
     })
 })
 
