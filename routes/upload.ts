@@ -56,37 +56,41 @@ const deleteFile = (type: string, filename: string) => {
 }
 
 // ! THE MULTER SAVES FILES EVEN IF THE PATHS ARE NOT SAVED IN THE TABLE
-router.put('/food', upload.single('foodImage'), (req: any, res: Response) => {
-    const query = 'UPDATE foods SET image_path = ? WHERE id = ?;'
-    const food_id = req.query.id
+router.put(
+    '/image/food',
+    upload.single('foodImage'),
+    (req: any, res: Response) => {
+        const query = 'UPDATE foods SET image_path = ? WHERE id = ?;'
+        const food_id = req.query.id
 
-    if (!req.file) {
-        handleNotFound(res, 'File not found or type not valid.')
-        return
-    }
-
-    if (!req.file.filename) {
-        handleNotFound(res, 'File name not valid.')
-        return
-    }
-
-    connection.query(
-        query,
-        ['/images/foods/' + req.file.filename, food_id],
-        (err: MysqlError) => {
-            if (err) {
-                handleMySqlError(res, err)
-                deleteFile('foods', 'req.file.filename')
-                return
-            }
-
-            res.status(200)
-            res.json({
-                success: true,
-                msg: 'File added.',
-            })
+        if (!req.file) {
+            handleNotFound(res, 'File not found or type not valid.')
+            return
         }
-    )
-})
+
+        if (!req.file.filename) {
+            handleNotFound(res, 'File name not valid.')
+            return
+        }
+
+        connection.query(
+            query,
+            ['/images/foods/' + req.file.filename, food_id],
+            (err: MysqlError) => {
+                if (err) {
+                    handleMySqlError(res, err)
+                    deleteFile('foods', 'req.file.filename')
+                    return
+                }
+
+                res.status(200)
+                res.json({
+                    success: true,
+                    msg: 'File added.',
+                })
+            }
+        )
+    }
+)
 
 module.exports = router

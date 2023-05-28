@@ -10,6 +10,7 @@ router.route('/foods/:filename').get((req: Request, res: Response) => {
         handleNotFound(res, 'No params given.')
         return
     }
+
     if (!require.main?.filename) {
         handleNotFound(res, 'No filename given.')
         return
@@ -18,7 +19,7 @@ router.route('/foods/:filename').get((req: Request, res: Response) => {
     res.status(200)
     res.sendFile(
         require.main.filename +
-            path.dirname(+`/public/images/foods/${req.params.filename}`)
+            path.dirname(`/public/images/foods/${req.params.filename}`)
     )
 })
 

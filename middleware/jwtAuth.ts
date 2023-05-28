@@ -28,7 +28,7 @@ function jwtAuth(req: Request, res: Response, next: NextFunction) {
 
     if (!bearerHeader) {
         console.log('No bearer token.')
-        res.status(403).end()
+        res.status(498).end()
         return res
     }
 

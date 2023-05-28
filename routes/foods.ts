@@ -70,15 +70,16 @@ router.route('/find').get((req: Request, res: Response) => {
     )
 })
 
-router.route('/uid').get((req: Request, res: Response) => {
+// food by user id
+router.route('/user/:id').get((req: Request, res: Response) => {
     const query = 'SELECT * FROM foods WHERE user_id=?'
 
-    if (!req.query.id) {
+    if (!req.params.id) {
         handleNotFound(res, 'No id.')
         return
     }
 
-    connection.query(query, [req.query.id], (err: MysqlError, rows: any[]) => {
+    connection.query(query, [req.params.id], (err: MysqlError, rows: any[]) => {
         if (err) {
             handleMySqlError(res, err)
             return
@@ -93,8 +94,7 @@ router.route('/uid').get((req: Request, res: Response) => {
 router
     .route('/food')
     .get((req: Request, res: Response) => {
-        const query =
-            'SELECT * FROM foods INNER JOIN food_details fd on foods.id = fd.food_id WHERE id = ?;'
+        const query = 'SELECT * FROM foods WHERE id = ?;'
 
         if (!req.query.id) {
             handleCustomError(res, 500, 'No id has been given.')
@@ -222,7 +222,7 @@ router
 // ! Route to link food to food, for the MANY-TO-MANY relation
 // ? "m" query is the main food for which you want to find the ingredients
 // ? "s" query is the food that you want to link to the main food
-router.route('/link').post((req: Request, res: Response) => {
+router.route('/').put((req: Request, res: Response) => {
     if (!req.query.main || !req.query.sub) {
         handleNotFound(res, "Query's missing.")
         return
@@ -265,7 +265,7 @@ function createGetQuery(idList: any[]) {
 }
 
 // ! Route to get the linked foods
-router.route('/subs').get((req: Request, res: Response) => {
+router.route('/ingredients').get((req: Request, res: Response) => {
     if (!req.query.id) {
         handleNotFound(res, 'No id has been given.')
         return
