@@ -130,13 +130,29 @@ router
         const postQuery = 'INSERT INTO foods (name, user_id) VALUES (?, ?)'
         const putQuery = 'UPDATE foods SET name = ? WHERE id = ?;'
 
-        // ! Checking if the id is given
-        if (!req.query.id) {
-            handleCustomError(res, 500, 'No id has been given.')
-            return
-        }
+        console.log(req.body)
 
         const updatedFood: FoodModel = req.body
+
+        // ! Checking if the id is given
+        if (!req.query.id) {
+            return connection.query(
+                postQuery,
+                [updatedFood.name, updatedFood.user_id],
+                (err: MysqlError) => {
+                    if (err) {
+                        handleMySqlError(res, err)
+                        return
+                    }
+
+                    res.status(201)
+                    res.json({
+                        success: true,
+                        msg: 'Created a new food.',
+                    })
+                }
+            )
+        }
 
         // ! Making sure the not nullable attributes are not missing
         if (!updatedFood.name || !updatedFood.user_id) {
@@ -154,7 +170,7 @@ router
                 }
 
                 if (rows.length == 0) {
-                    connection.query(
+                    return connection.query(
                         postQuery,
                         [updatedFood.name, updatedFood.user_id],
                         (err: MysqlError) => {
@@ -170,7 +186,6 @@ router
                             })
                         }
                     )
-                    return
                 }
 
                 if (rows[0].user_id != updatedFood.user_id) {
