@@ -127,18 +127,38 @@ router
     })
     .put((req: Request, res: Response) => {
         const getQuery = 'SELECT * FROM foods WHERE id = ?;'
-        const postQuery = 'INSERT INTO foods (name, user_id) VALUES (?, ?)'
-        const putQuery = 'UPDATE foods SET name = ? WHERE id = ?;'
+        const postQuery =
+            'INSERT INTO foods (name, user_id, calories, empty_calories, carbs, fats, proteins) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        const putQuery =
+            'UPDATE foods SET name = ?, calories = ?, empty_calories = ?, carbs = ?, fats = ?, proteins = ? WHERE id = ?;'
 
         console.log(req.body)
 
         const updatedFood: FoodModel = req.body
 
+        let empty_calories =
+            updatedFood.calories -
+            (updatedFood.fats * 9 +
+                updatedFood.carbs * 4 +
+                updatedFood.proteins * 4)
+
+        if (empty_calories < 0) {
+            empty_calories = 0
+        }
+
         // ! Checking if the id is given
         if (!req.query.id) {
             return connection.query(
                 postQuery,
-                [updatedFood.name, updatedFood.user_id],
+                [
+                    updatedFood.name,
+                    updatedFood.user_id,
+                    updatedFood.calories,
+                    empty_calories,
+                    updatedFood.carbs,
+                    updatedFood.fats,
+                    updatedFood.proteins,
+                ],
                 (err: MysqlError) => {
                     if (err) {
                         handleMySqlError(res, err)
@@ -195,7 +215,16 @@ router
 
                 connection.query(
                     putQuery,
-                    [updatedFood.name, req.query.id],
+                    [
+                        updatedFood.name,
+                        updatedFood.user_id,
+                        updatedFood.calories,
+                        empty_calories,
+                        updatedFood.carbs,
+                        updatedFood.fats,
+                        updatedFood.proteins,
+                        req.query.id,
+                    ],
                     (err: MysqlError) => {
                         if (err) {
                             handleMySqlError(res, err)
